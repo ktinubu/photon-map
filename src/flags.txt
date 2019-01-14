@@ -1,0 +1,1 @@
+ -resolution 200 200 -num_samples 20 -general_search_range 0.07 -caustic_search_range 0.1 -num_general_map 500000 -num_caustic_map 1000000 -num_photon_estimate 150 -tone_map_const 0.3

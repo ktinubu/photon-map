@@ -1,0 +1,325 @@
+<head>
+    <title> COS 526 Assignment 3 Khaled Tinubu &mdash; Photon Mapping &mdash; Writeup: </title>
+    <link href="css/style.css" type="text/css" rel="stylesheet"/>
+</head>
+
+
+<body>
+    <div class="top">
+    <div class="main_div">
+
+        <h1> <div class=assignment>COS 526 Assignment 3: Khaled Tinubu</div>Photon Mapping &mdash; Writeup</h1>
+        <div class='selectable'>
+        <h2 id='ktinubu'></h2>
+    </div>
+
+<h1>Photon Mapping</h2>
+    <p5>
+    In Photon mapping, "photons" are emitted from light sources and move through a scene, being and reflected, transmitted and absorbed when interacting with surfaces or volumes. Storing information about these interaction can yield information that we can use to better approximate complex effects that standard ray tracing struggles with, such as inderect illumination and caustics. We store these photons in a "photon map" and use it as an estimate for the incoming illumination in the rendering step. This estimate becomes more precise as we include more photons in our estimate. In order to find the photons that are closest to a certain point, we store photons in a kd tree.
+</p5>
+<h2>Photon Emission</h2>
+
+
+<div class="row">
+    <div class="column">
+        <div class="card">
+            <img src="point.png" width="300" height="300">
+            <div class="container">
+                <p5>For point lights,the emission direction was the vector from the point source to a point randomly sampled on the unit shpere.</p5>
+            </div> 
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <img src="spot.png" width="300" height="300">
+            <div class="container">
+                <p5>For spot lights, emission is determined in a similar way to point lights except a vector is rejected if the angle between the emission vector and normal exceeds a cutoff value</p5>
+            </div> 
+        </div>
+    </div>
+
+     <div class="column">
+        <div class="card">
+            <img src="dir.png" width="300" height="300">
+            <div class="container">
+                <p5>To make a directional light we first create a disc outside of the scene which is large enough that it's projection cover's the whole scene. We then sample random points on the disc and then emit photons in the given light direction.</p5>
+            </div> 
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <img src="area.png" width="300" height="300">
+            <div class="container">
+                <p5><br><br>For area lights, emission direction was the vector from the a source point, which was a randomly chosen point on the light, to a point randomly sampled on the cosine lobe. Using a cosine lobe instead of a hemisphere minimizes the chance of a photon be emitted perpendicularly to the normal of the are light source, which is not realistic.</p5>
+            </div> 
+        </div>
+    </div>    
+</div>
+    <h1>Photon Scattering</h1>
+    <p5>
+        We use importance sampling acording the the  Phong BRDF of the scattering surface in order to chose the direction in which a a photon bounces off/through a surface.
+    </p5>
+
+    <div class="row">
+    <div class="column">
+        <div class="card">
+            <img src="transm.png" width="300" height="300">
+            <div class="container">
+                <p5>Transmission is calulated using snell's law</p5>
+            </div> 
+        </div>
+    </div>
+    <div class="column">
+        <div class="card">
+            <img src="diff.png" width="300" height="300">
+            <div class="container">
+                <p5>For diffuse reflection. The photon is bounced in a direction sampled from the cosine lobe, centered about the normal of the intersecting surface </p5>
+            </div> 
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <img src="spec.png" width="300" height="300">
+            <div class="container">
+                <p5> <br> <br>For specular lights, The bounce direction is similar to that of diffuse reflection but we of centering the lobe around the direction of ideal specular relfection and bias the random sampling to choose vectors closer to this direction. The amount of bias is controlled by the specular exponent of the material</p5>
+            </div> 
+        </div>
+    </div>
+</div> 
+    <h1>Separate Photon Maps</h1>
+    <p>
+    To concentrate on capturing caustic effects, we can add a separate caustic photon map, which contains the first diffuse interaction of photons that had only had transmissive/specular interactions beforehand<p>
+    </p>
+
+    <div class="row">
+    <div class="column">
+        <div class="card">
+            <img src="general.png" width="300" height="300">
+            <div class="container">
+                <p5>general photon map</p5>
+            </div> 
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <img src="caustic.png" width="300" height="300">
+            <div class="container">
+                <p5>caustic photon map</p5>
+            </div> 
+        </div>
+    </div>
+</div>
+
+    <h2> Radiance Estimation</h2>
+    <p>
+    In our ray tracer, we use russian roulette to trace photon paths throughout to these scene and evalute reflected light using the methods shown in <a href="http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf">A Practical Guide to Global Illumination using Photon Mapping<a/>. 
+    One of the advantages of photon mapping is the fact that we can split up the rendering eqation into seprate intergrals and evaluate them seperately as described in <a href="http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf">the paper<a/>. By using the global and caustic photon maps as estimates for indirect and caustic illumination radiance we can seperately evaluate the intergrals for reflected light for these types of illumination. As a result of this we can use a more accurate method, in this case monte carlo path tracing with russian roulette, to evaluate direct illumination and specular/glossy reflection. For specular/glossy reflection, we use importance sampling according to <a href="http://mathinfo.univ-reims.fr/IMG/pdf/Using_the_modified_Phong_reflectance_model_for_Physically_based_rendering_-_Lafortune.pdf">the Phong BRDF of the scattering surface<a/>. For direct illumination, instead of intergrating across all direction in the hemisphere, we choose to integrate across the surface of the light as shown in <a href="https://www.cs.utah.edu/~shirley/papers/rw91.pdf">Direct Lighting Calculation
+by Monte Carlo Integration<a/>, adding an extra cosine term and an occlusion term. This allows us to get soft shadows.
+    </p>
+
+
+    <div class="row">
+    <div class="column">
+        <div class="card">
+            <img src="cornell_dir.png" width="300" height="300">
+            <div class="container">
+                <p5>Direct light</p5>
+            </div> 
+        </div>
+    </div>
+    <div class="column">
+        <div class="card">
+            <img src="cornell_gen.png" width="300" height="300">
+            <div class="container">
+                <p5>Indirect light</p5>
+            </div> 
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <img src="cornell_cau.png" width="300" height="300">
+            <div class="container">
+                <p5>Caustics</p5>
+            </div> 
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <img src="cornell_all.png" width="300" height="300">
+            <div class="container">
+                <p5>Combined</p5>
+            </div> 
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="column">
+        <div class="card">
+            <img src="cornell_1pp.png" width="300" height="300">
+            <div class="container">
+                <p5>1 photons per pixel</p5>
+            </div> 
+        </div>
+    </div>
+    <div class="column">
+        <div class="card">
+            <img src="cornell_10pp.png" width="300" height="300">
+            <div class="container">
+                <p5>10 photons per pixel</p5>
+            </div> 
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <img src="cornell_100pp.png" width="300" height="300">
+            <div class="container">
+                <p5>100 photon per pixel</p5>
+            </div> 
+        </div>
+    </div>
+</div>
+
+    <h4>Tone Mapping</h4>
+    <p>
+    Once we have a our radiance values for each pixel, we realize that our pixel values are in a hyper dynamic range, with "bright pixels", many orders of magnitude larger than the "darkest pixels". Simply normalizng these values and contructing a png image of your image bitmap will lead to an extremely dark image, as the few high energy pixels dominate. One Solution is to clamp the brightest pixels but this does nothing about the "undere-exposed" dark areas of the image and can create a flat patches of the same brightness around the brightest areas of the image. To get around this problem, we implemented the 
+    <a href="https://www.cs.utah.edu/~reinhard/cdrom/tonemap.pdf"> Reinhard HDR Tonemapping algorithm <a/><br> which compresses the luminance values of each pixel with a non linear operator
+    </p>
+   
+   <div class="row">
+    <div class="column">
+        <div class="card">
+            <img src="cornell_normalized.png" width="300" height="300">
+            <div class="container">
+                <p5>normalized</p5>
+            </div> 
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <img src="cornell_gamma202.png" width="300" height="300">
+            <div class="container">
+                <p5>normalized and gamma corrected(gamma = 2.2)</p5>
+            </div> 
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <img src="cornell_all.png" width="300" height="300">
+            <div class="container">
+                <p5>reinhard's algorithm</p5>
+            </div> 
+        </div>
+    </div>
+</div>
+
+
+    <p>
+        random sampling was used to deal with aliasing
+    </p>
+    <h1>Images</h1>
+    <div class="row">
+    <div class="column">
+        <div class="card">
+            <img src="cornell_big_500_400_sam_200_est_.1_dist_.3_tone_9000000_photons_spekles.png" width="500" height="500">
+            <div class="container">
+                <p5>final cornell box: <br>
+                    500 pixels<br>
+                    400 samples per pixel<br>
+                    200 photons per estimate<br>
+                    0.01 search distance<br>
+                    0.03 tone mapping constant<br>
+                    9,000,000 photons in general map<br>
+                    </p5>
+            </div> 
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="column">
+        <div class="card">
+            <img src="glass.png" width="300" height="300">
+            <div class="container">
+                <p5>500 photons</p5>
+            </div> 
+        </div>
+    </div>
+    <div class="column">
+        <div class="card">
+            <img src="glass_5000.png" width="300" height="300">
+            <div class="container">
+                <p5>5000 photons</p5>
+            </div> 
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <img src="glass_50000.png" width="300" height="300">
+            <div class="container">
+                <p5>50,000 photons</p5>
+            </div> 
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <img src="glass_500000_20_samples_0.08_reinhard_25_est.png" width="300" height="300">
+            <div class="container">
+                <p5>500,000 photons</p5>
+            </div> 
+        </div>
+    </div>
+</div>
+
+
+    <p5>
+    <h3>command line arguments:</h3>
+    -resolution: height and width of output image in pixels <br>
+    -num_samples: number of samples per pixel<br>
+    -general_search_range: maximum knn search distance for general protons as a proprtion of the radius of the bounding box of the scene<br>
+    -caustic_search_range: maximum knn search distance for caustic protons as a proprtion of the radius of the bounding box of the scene<br>
+    -num_general_map: number of photons in the general map<br>
+    -num_caustic_map: number of photons in the caustic map<br>
+    -num_photon_estimate: number of photons used in for each radiance estimate for a point<br>
+    -tone_map_const: constant for Reinhard tonemapping
+    <h3>default values:</h3>
+    -resolution: 200 200<br>
+    -num_samples: 20<br>
+    -general_search_range: 0.07 (if you use less photons or have a bigger scene, increaase the search range)<br>
+    -caustic_search_range: 0.1 (same advice as general_search_range)<br>
+    -num_general_map: 500000<br>
+    -num_caustic_map: 1000000<br>
+    -num_photon_estimate: 150<br>
+    -tone_map_const = 0.3 (try varying up to 1.8 and down to 0.05)<br>
+
+</p5>
+<p>Sources: 
+<br>
+<a href="http://mathinfo.univ-reims.fr/IMG/pdf/Using_the_modified_Phong_reflectance_model_for_Physically_based_rendering_-_Lafortune.pdf">Using_the_modified_Phong_reflectance_model_for_Physically_based_rendering_<a/><br>
+<a href="https://www.gigahertz-optik.de/en-us/basics-light-measurement/light-color/quantities-radiometric-examples/">basics-light-measurement<a/><br>
+
+<a href="https://computergraphics.stackexchange.com/questions/5085/light-intensity-of-an-rgb-value">light-intensity-of-an-rgb-value</a><br>
+
+
+<a href="https://cg.informatik.uni-freiburg.de/course_notes/graphics2_07_materials.pdf">brdf<a/><br>
+
+<a href="https://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf">reflection_refraction<a/><br>
+
+<a href="https://www.w3schools.com/howto/howto_css_cards.asp">css<a/><br>
+
+<a href="https://www.cs.utah.edu/~reinhard/cdrom/tonemap.pdf">tone mapping<a/><br>
+
+</p>
+</body>
+</html>
