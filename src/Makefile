@@ -51,7 +51,7 @@ OPENGL_LIBS=-lglu32 -lopengl32 -lwinmm -lgdi32
 else ifeq ("$(OS)","Darwin")
 OPENGL_LIBS=-framework GLUT -framework opengl
 else
-OPENGL_LIBS=-lGLU -lGL
+OPENGL_LIBS=-lGLU -lGL -lX11
 endif
 
 
