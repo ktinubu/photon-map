@@ -12,6 +12,7 @@
 #include <iostream>
 #include "photonmap.h"
 #include <vector>
+#include <algorithm>
 
 
 
