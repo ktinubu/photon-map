@@ -8,5 +8,3 @@ src/render\.o
 src/fglut/libfglut\.a
 
 src/kdtview
-
-src/photonmap
