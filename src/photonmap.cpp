@@ -936,13 +936,10 @@ void photonInteraction(const R3Brdf *brdf, RNScalar *prev_ior, const Photon* in,
     RNScalar n1;
     RNScalar n2;
     bool flip_normal = false;
-    // std::cout<<normal.Length()<<std::endl;
-    // std::cout<<in->direction.Length()<<std::endl;
     RNScalar cos_theta = normal.Dot(in->direction);
     if (cos_theta < 0) {
        std::cout<<"in"<<std::endl;
-       // std::cout << std::to_string(double(brdf->IndexOfRefraction())) + ", " + std::to_string(double(camera_index_of_refraction)) << std::endl;
-       // assert(*prev_ior < brdf->IndexOfRefraction());
+     
        n1 = camera_index_of_refraction;
        n2 = brdf->IndexOfRefraction();
 
@@ -954,10 +951,6 @@ void photonInteraction(const R3Brdf *brdf, RNScalar *prev_ior, const Photon* in,
         n1 = camera_index_of_refraction;
         n2 = brdf->IndexOfRefraction();
     }
-    std::cout<<std::to_string(double(normal[0]))<< ", " << std::to_string(double(normal[1])) << ", " << std::to_string(double(normal[2])) <<std::endl;
-    std::cout<<std::to_string(double(in->position[0]))<< ", " << std::to_string(double(in->position[1])) << ", " << std::to_string(double(in->position[2])) <<std::endl;
-
-    std::cout << std::to_string(double(n1)) + ", " + std::to_string(double(n2)) << std::endl;
 
     R3Vector trans_normal = normal;
     if (flip_normal) {
@@ -967,22 +960,6 @@ void photonInteraction(const R3Brdf *brdf, RNScalar *prev_ior, const Photon* in,
     RNScalar sin_2_theta_t = pow(ior_ratio, 2) * (1 - pow(cos_theta, 2));
     RNScalar tir = (RNIsGreaterOrEqual(sin_2_theta_t, RNScalar(1)));
 
-    if (tir) {
-      *out_direction = in->direction - (2 * cos_theta * trans_normal);
-      std::cout<<"refpl"<<std::endl;
-    }
-    if (!tir) {
-      std::cout<<"fract"<<std::endl;
-      *prev_ior = brdf->IndexOfRefraction();
-      *out_direction = (in->direction * ior_ratio) + ((ior_ratio * cos_theta - sqrt(1 - sin_2_theta_t)) * normal);
-      assert(RNIsEqual(sqrt(sin_2_theta_t) /  (sqrt(1 - (cos_theta * cos_theta))),ior_ratio));
-      //std::cout << std::to_string(double(sqrt(sin_2_theta_t) /  (sqrt(1 - (cos_theta * cos_theta))))) + ", " + std::to_string(double(ior_ratio)) << std::endl;
-      return;
-    }
-
-
-    // assert(int(tir) == 1 || int(tir) == 0);
-    // assert(int(!tir) == 1 || int(!tir) == 0);
     RNScalar r_0 = pow((n1 - n2) / (n1+ n2),2);
     RNScalar reflect_prob;
     if (RNIsLessOrEqual(n1,n2)) {
