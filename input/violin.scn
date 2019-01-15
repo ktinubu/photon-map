@@ -16,6 +16,7 @@ material 0 0 0   0 0 0   0 0 0   1 1 1   0 0 0   10 1.8 0
 # Meshes with different materials
 box    0  -10 -2 -12  10 -.5 10 
 mesh   1    violinBody.off
+mesh   1 
 mesh   2    nobs.off
 mesh   3    strings.off
 

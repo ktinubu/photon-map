@@ -167,6 +167,8 @@ DrawPhotons(R3Scene *scene, RNArray<Photon *> photon_list, R3Kdtree<Photon *> *p
     int ab = 100000;
     glColor3d(photon->power[0] * ab, photon->power[1] * ab, photon->power[2] * ab);
     R3Sphere(photon->position, 0.005 * radius).Draw();
+    R3Sphere(R3Point(-10.0, -2.0, -12.0), 0.005 * radius).Draw();
+   
     R3Span(photon->position, photon->source).Draw();
     glColor3d(0.7, 1.0, 0.2);
     R3Span(photon->position, photon->position + 0.02 * radius * photon->normal).Draw();
@@ -975,7 +977,25 @@ void photonInteraction(const R3Brdf *brdf, RNScalar *prev_ior, const Photon* in,
     }
 
     *prev_ior = brdf->IndexOfRefraction();
-    *out_direction = (in->direction * ior_ratio) + ((ior_ratio * cos_theta - sqrt(1 - sin_2_theta_t)) * normal);
+
+    R3Vector rotation_axis;
+    RNScalar rotation_angle;
+    R3Vector ideal_refraction = (in->direction * ior_ratio) + ((ior_ratio * cos_theta - sqrt(1 - sin_2_theta_t)) * normal);
+    ideal_refraction.Normalize();
+    getConversionRotation(R3Vector(0,0,1), ideal_refraction, &rotation_angle, &rotation_axis);
+    R3Vector dir;
+
+    RNScalar z = pow(RNRandomScalar(), RNScalar(1)/ brdf->Shininess());
+    RNScalar alpha = acos(z); // angle between refracted and ideal specular ray 
+    RNScalar phi = RNRandomScalar() * RN_TWO_PI;
+    RNScalar sin_alpha = sin(alpha);
+    RNScalar x = sin_alpha * cos(phi);
+    RNScalar y = sin_alpha * sin(phi);
+    dir = R3Vector(x,y,z);
+    dir.Rotate(rotation_axis, rotation_angle);
+    dir.Normalize();
+    
+    *out_direction = dir;
   }
    else {
     // ABSORBED case

@@ -98,7 +98,6 @@ RenderImage(R3Scene *scene,
         const R3Material *material = (element) ? element->Material() : &R3default_material;
         const R3Brdf *brdf = (material) ? material->Brdf() : &R3default_brdf;
 
-
         //power_multiplier =  brdf->Diffuse();
         //std::cout<<power_multiplier[0]<< ", " << power_multiplier[1] << ", " << power_multiplier[2] <<std::endl;
 
@@ -122,7 +121,7 @@ RenderImage(R3Scene *scene,
               if (RNIsNegativeOrZero(NL)) {
                 continue;
               }
-              // color += roulette_multiplier * NL * diff_brdf * Ic;
+              color += roulette_multiplier * NL * diff_brdf * Ic;
             }
           } else if (light->ClassID() == R3AreaLight::CLASS_ID()) {
             // monte carlo estimate to evaluate direct illumination
