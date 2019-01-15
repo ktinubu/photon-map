@@ -18,8 +18,7 @@ material 0 0 0   0 0 0   0 0 0   1 1 1   0 0 0   60 1.345 0
 box    1  -10 -2 -12  10 -.5 10
 box    1  -10 -2 -12  -9 10 10
 box    1  -9 10 10 10 -3 11
-mesh   2  beer-bottle12.off
+mesh   0  beer-bottle12.off
 mesh   3 bottle4.off
-mesh   0 bottle3.off
-#mesh   0    beer-bottle-liquid.off
+mesh   2 bottle3.off
 

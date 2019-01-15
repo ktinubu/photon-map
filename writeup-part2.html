@@ -1,0 +1,128 @@
+<head>
+    <title> COS 526 Assignment 3 Khaled Tinubu &mdash; Photon Mapping Part 2&mdash; Writeup: </title>
+    <link href="css/style.css" type="text/css" rel="stylesheet"/>
+</head>
+
+
+<body>
+    <div class="top">
+    <div class="main_div">
+
+        <h1> <div class=assignment>COS 526 Assignment 3: Khaled Tinubu</div>Photon Mapping Part 2 &mdash; Writeup</h1>
+        <div class='selectable'>
+        <h2 id='ktinubu'></h2>
+    </div>
+
+<h1>Photon Mapping</h2>
+    <p5>Continuation from part 1. In order to better model light flow through glass by add fresnel reflections and translucency. I also implemented cone filtering.
+</p5>
+<h2>Photon Emission</h2>
+
+
+<div class="row">
+    <div class="column">
+        <div class="card">
+            <img src="no_filter.png" width="300" height="300">
+            <div class="container">
+                <p5>No filter</p5>
+            </div> 
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <img src="cone_filter.png" width="300" height="300">
+            <div class="container">
+                <p5>cone filter with a constant of 1.5</p5>
+            </div> 
+        </div>
+    </div> 
+</div>
+
+    <h1>translucency</h1>
+    <p5>
+        For transmission, The transmitted direction is calculated in a similar way to how we calcluate specular reflection but we center our lobe around the direction of perfect refraction. How close the lobe is to the direction is determined by the properties of the material
+    </p5>
+
+<div class="row">
+    <div class="column">
+        <div class="card">
+            <img src="sdfasmoo1.png" width="300" height="300">
+            <div class="container">
+                <p5>highly transparent</p5>
+            </div> 
+        </div>
+    </div>
+    <div class="column">
+        <div class="card">
+            <img src="sdfarough1.png" width="300" height="300">
+            <div class="container">
+                <p5>sdfarough1.png</p5>
+            </div> 
+        </div>
+    </div>
+</div>
+
+    <p>
+        random sampling was used to deal with aliasing
+    </p>
+    <h1>Images</h1>
+    <div class="row">
+    <div class="column">
+        <div class="card">
+            <img src="cornell_big_500_400_sam_200_est_.1_dist_.3_tone_9000000_photons_spekles.png" width="500" height="500">
+            <div class="container">
+                <p5>final cornell box: <br>
+                    500 pixels<br>
+                    400 samples per pixel<br>
+                    200 photons per estimate<br>
+                    0.01 search distance<br>
+                    0.03 tone mapping constant<br>
+                    2,000,00 photons in general map<br>
+                    </p5>
+            </div> 
+        </div>
+    </div>
+</div>
+
+
+    <p5>
+    <h3>command line arguments:</h3>
+    -resolution: height and width of output image in pixels <br>
+    -num_samples: number of samples per pixel<br>
+    -general_search_range: maximum knn search distance for general protons as a proprtion of the radius of the bounding box of the scene<br>
+    -caustic_search_range: maximum knn search distance for caustic protons as a proprtion of the radius of the bounding box of the scene<br>
+    -num_general_map: number of photons in the general map<br>
+    -num_caustic_map: number of photons in the caustic map<br>
+    -num_photon_estimate: number of photons used in for each radiance estimate for a point<br>
+    -tone_map_const: constant for Reinhard tonemapping
+    <h3>default values:</h3>
+    -resolution: 200 200<br>
+    -num_samples: 20<br>
+    -general_search_range: 0.07 (if you use less photons or have a bigger scene, increaase the search range)<br>
+    -caustic_search_range: 0.1 (same advice as general_search_range)<br>
+    -num_general_map: 500000<br>
+    -num_caustic_map: 1000000<br>
+    -num_photon_estimate: 150<br>
+    -tone_map_const = 0.3 (try varying up to 1.8 and down to 0.05)<br>
+
+</p5>
+<p>Sources: 
+<br>
+<a href="http://mathinfo.univ-reims.fr/IMG/pdf/Using_the_modified_Phong_reflectance_model_for_Physically_based_rendering_-_Lafortune.pdf">Using_the_modified_Phong_reflectance_model_for_Physically_based_rendering_<a/><br>
+<a href="https://www.gigahertz-optik.de/en-us/basics-light-measurement/light-color/quantities-radiometric-examples/">basics-light-measurement<a/><br>
+
+<a href="https://computergraphics.stackexchange.com/questions/5085/light-intensity-of-an-rgb-value">light-intensity-of-an-rgb-value</a><br>
+
+
+<a href="https://cg.informatik.uni-freiburg.de/course_notes/graphics2_07_materials.pdf">brdf<a/><br>
+
+<a href="https://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf">reflection_refraction<a/><br>
+
+<a href="https://www.w3schools.com/howto/howto_css_cards.asp">css<a/><br>
+
+<a href="https://www.cs.utah.edu/~reinhard/cdrom/tonemap.pdf">tone mapping<a/><br>
+
+</p>
+</body>
+</html>
