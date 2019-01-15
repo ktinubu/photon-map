@@ -1,0 +1,43 @@
+#camera 2.07706 -4.61483 2.14648   -2.07706 4.61483 4.93044   0 1 0   0.329   0.01 100
+
+camera  -5.30578 -30.5023 5.83986 0.2 1 0  0 0 1   0.329   0.05 100
+
+# materials
+# light
+material 0 0 0   1 1 1   0 0 0   0 0 0   1 1 1  10 1.0 0
+#glass
+material 0 0 0   0 0 0   0 0 0   1 1 1   0 0 0   30 1.403 0
+#liquid
+material 0 0 0   0 0 0   0 0 0   1 0.83 0.389   0 0 0   5000 1.345 0
+
+# rough
+material 0 0 0  0 0 0   0.8 0.8 0.8   0 0 0  0 0 0  10 1 0
+
+material 0 0 0   0.4 0.1 0        0 0 0   1 1 1   0 0 0   5000 1.9 0
+
+
+#point_light 500 500 500 0.556 0.9 0.559    0 0 1
+mesh   1    beer-bottle.off
+mesh   3    beer-bg.off
+mesh   3    beer-bottle-floor.off
+mesh   2    beer-bottle-liquid.off
+#mesh  0    beer-bottle-disk-light-3.off
+
+
+area_light 1 1 1  3.27229 -7.9815 2.23398   0 1 0   0.2   1.0 0.0 0.0
+
+#point_light 500 500 500   0.27229 -7.9815 2.23398    0 0 1
+#point_light 5 5 5  -3.27229 7.9815 -2.23398    0 0 1
+
+#point_light 5 5 5  3 0 3    0 0 1
+
+#point_light 5 5 5 4 4 4    0 0 1
+
+
+
+#\begin{pmatrix}3.27229&-7.9815&2.54959\end{pmatrix}
+
+
+
+
+#\begin{pmatrix}-2.07706&4.61483&4.93044\end{pmatrix}

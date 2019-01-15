@@ -13,6 +13,9 @@
 #include "photonmap.h"
 #include <vector>
 #include <algorithm>
+#include <fstream>
+#include <string> 
+#include <chrono>
 
 
 
@@ -82,6 +85,8 @@ RenderImage(R3Scene *scene,
 
       for (int s = 0; s < num_samples; s ++) {
         R3Ray ray = scene->Viewer().WorldRay(i, j);
+        // std::cout<<ray.Point(0)[0]<< ", " << ray.Point(0)[1] << ", " << ray.Point(0)[2] <<std::endl;
+
         RNScalar prev_ior = camera_index_of_refraction;
         RNRgb power_multiplier =  RNRgb(1,1,1);
         if (!traceRayDiffuse(scene, &prev_ior, ray, &point, &element, &normal, termination_rate, &power_multiplier)) {
@@ -92,7 +97,6 @@ RenderImage(R3Scene *scene,
 
         const R3Material *material = (element) ? element->Material() : &R3default_material;
         const R3Brdf *brdf = (material) ? material->Brdf() : &R3default_brdf;
-
 
         //power_multiplier =  brdf->Diffuse();
         //std::cout<<power_multiplier[0]<< ", " << power_multiplier[1] << ", " << power_multiplier[2] <<std::endl;
@@ -195,12 +199,28 @@ RenderImage(R3Scene *scene,
     fflush(stdout);
   }
 
+  std::string width_str = std::to_string(width);
+  std::string height_str = std::to_string(height);
+  std::string now = std::to_string(std::chrono::time_point_cast<std::chrono::milliseconds>(
+    std::chrono::system_clock::now()).time_since_epoch().count());
+  std::string grey_conv = std::to_string(double(gray_conv_coeffs[0])) +  "=" + std::to_string(double(gray_conv_coeffs[1])) + "=" + std::to_string(double(gray_conv_coeffs[2]));
+  std::string tone_map = std::to_string(reinhard_tone_map_a);
+  std::ofstream f;
+  f.open(width_str + ":" + height_str + ":"  + grey_conv + ":" + tone_map + ":"  + now + ".csv");
+  f << "pixel number,r,g,b\n";
+  int pix_count = 0;
+  for (int i = 0; i < width; i++) {
+    for (int j = 0; j < height; j++) {
+      f << std::to_string(double(pixels[pix_count][0])) + "," + std::to_string(pixels[pix_count][1]) + "," + std::to_string(pixels[pix_count][2]) + "\n";
+      pix_count++;
+    }
+  } 
   std::cout<<"applying tone mapping..."<<std::endl;
   // apply tone mapping from Reinhard '02
 
+  pix_count = 0;
   // get avg luminance
   RNScalar avg_lum = 0.0;
-  int pix_count = 0;
   for (int i = 0; i < width; i++) {
     for (int j = 0; j < height; j++) {
       RNRgb color = pixels[pix_count];
@@ -253,7 +273,6 @@ RenderImage(R3Scene *scene,
     }
   }
 
-
   // normalize pixel values
   pix_count = 0;
   for (int i = 0; i < width; i++) {
@@ -261,6 +280,8 @@ RenderImage(R3Scene *scene,
       RNRgb color = pixels[pix_count];
       color /= global_max_color;
       pixels[pix_count] = color;
+      std::cout<<color[0]<< ", " << color[1] << ", " << color[2] <<std::endl;
+
       image->SetPixelRGB(i, j, color);
       pix_count++;
     }

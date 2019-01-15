@@ -9,6 +9,7 @@ struct Photon
   R3Point source;
   R3Point position;
   R3Vector direction;
+  R3Vector out_direction;
   RNRgb power;
   int bounces;
 }; 
