@@ -167,7 +167,10 @@ DrawPhotons(R3Scene *scene, RNArray<Photon *> photon_list, R3Kdtree<Photon *> *p
     glColor3d(photon->power[0] * ab, photon->power[1] * ab, photon->power[2] * ab);
     R3Sphere(photon->position, 0.005 * radius).Draw();
     R3Span(photon->position, photon->source).Draw();
-    R3Span(photon->position, photon->position + 0.05 * radius * photon->normal).Draw();
+    glColor3d(0.7, 1.0, 0.2);
+    R3Span(photon->position, photon->position + 0.02 * radius * photon->normal).Draw();
+    glColor3d(0.2, 1.0, 0.7);
+    R3Span(photon->position, photon->position + 0.05 * radius * photon->out_direction).Draw();
     
     // R3Vector mirrored = photon->direction - (2 * photon->direction.Dot(photon->normal) * photon->normal);
    
@@ -876,9 +879,9 @@ void photonInteraction(const R3Brdf *brdf, RNScalar *prev_ior, const Photon* in,
     spec *= scaling;
     trans *= scaling;
     absorb = 1 - diff - spec - trans;
-    assert(RNIsEqual(absorb, 0)); 
+    // assert(RNIsEqual(absorb, 0)); 
   } 
-  assert(RNIsEqual(diff + spec + trans + absorb, 1));
+  // assert(RNIsEqual(diff + spec + trans + absorb, 1));
 
   // Determine type of bounce and set new direction and power.
   RNScalar ksi = RNRandomScalar(); // random variable ksi
@@ -930,19 +933,59 @@ void photonInteraction(const R3Brdf *brdf, RNScalar *prev_ior, const Photon* in,
   } else if (ksi <= diff + spec + trans) {
   // TRANSMITTED case
     *out_power = (in->power * brdf->Transmission()) / trans;
-    RNScalar ior_ratio = (brdf->IndexOfRefraction() == *prev_ior) ?  *prev_ior / camera_index_of_refraction : *prev_ior / brdf->IndexOfRefraction();
+    RNScalar n1;
+    RNScalar n2;
+    bool flip_normal = false;
     RNScalar cos_theta = normal.Dot(-in->direction);
     if (cos_theta < 0) {
-      cos_theta = -cos_theta;
-      ior_ratio = RNScalar(1) / ior_ratio;
+        flip_normal = true;
+        n1 = *prev_ior;
+        n2 = camera_index_of_refraction;
+        cos_theta = -cos_theta;
+    } else {
+       n1 = *prev_ior;
+       n2 = brdf->IndexOfRefraction();
     }
-    RNScalar sin_2_theta_t = pow(ior_ratio, 2) * 1 - pow(cos_theta, 2);
+    R3Vector trans_normal = normal;
+    if (flip_normal) {
+      trans_normal = -trans_normal;
+    }
+    RNScalar ior_ratio = n1/n2;
+    RNScalar sin_2_theta_t = pow(ior_ratio, 2) * (1 - pow(cos_theta, 2));
+    RNScalar tir = (RNIsGreaterOrEqual(sin_2_theta_t, RNScalar(1)));
+    
 
-    if (RNIsGreaterOrEqual(sin_2_theta_t, RNScalar(1))) {
-      // Total internal reflection
-      *out_direction = in->direction - (2 * cos_theta * normal);
+
+    if (tir) {
+      *out_direction = in->direction - (2 * cos_theta * trans_normal);
+
+    }
+    if (!tir) {
+       *prev_ior = brdf->IndexOfRefraction();
+      *out_direction = (in->direction * ior_ratio) + ((ior_ratio * cos_theta - sqrt(1 - sin_2_theta_t)) * normal);
       return;
     }
+
+
+    // assert(int(tir) == 1 || int(tir) == 0);
+    // assert(int(!tir) == 1 || int(!tir) == 0);
+    RNScalar r_0 = pow((n1 - n2) / (n1+ n2),2);
+    RNScalar reflect_prob;
+    if (RNIsLessOrEqual(n1,n2)) {
+      reflect_prob = r_0 = + (1-r_0) * (1-cos_theta) * (1-cos_theta) * (1-cos_theta) * (1-cos_theta) * (1-cos_theta);
+    } else if (RNIsGreaterOrEqual(n1,pow(n2, int(!tir)))) {
+      RNScalar cos_theta_t = sqrt(1-sin_2_theta_t);
+      reflect_prob = r_0 + (1-r_0) * (1-cos_theta_t) * (1-cos_theta_t) * (1-cos_theta_t) * (1-cos_theta_t) * (1-cos_theta_t);
+    } else {
+      // assert(RNIsGreaterOrEqual(n1,pow(n2, int(tir))));
+      reflect_prob = 1;
+    }
+
+    if (RNRandomScalar() < reflect_prob) {
+      *out_direction = in->direction - (2 * cos_theta * trans_normal);
+      return;
+    }
+
     *prev_ior = brdf->IndexOfRefraction();
     *out_direction = (in->direction * ior_ratio) + ((ior_ratio * cos_theta - sqrt(1 - sin_2_theta_t)) * normal);
   }
@@ -992,6 +1035,7 @@ void tracePhoton(R3Scene *scene, RNScalar *prev_ior, Photon *in_photon,  RNArray
   if (is_absorbed) {
     return;
   }
+  in_photon->out_direction = out_photon_direction;
   Photon *out_photon = new Photon();
 
   if (is_diffuse && in_photon->bounces != 0) {
@@ -1131,9 +1175,10 @@ GetPhotonsFromLights(R3Scene *scene, long num_photons, bool get_only_caustics)
         Photon *curr_photon = new Photon();
         R3Ray ray;
         do {
-          double x = 2.0 * RNRandomScalar() - 1.0;
-          double y = 2.0 * RNRandomScalar() - 1.0;
-          double z = 2.0 * RNRandomScalar() - 1.0;
+          double x = 0;
+          double y = -0.2;
+          double z = -0.09;
+
           curr_photon->direction = R3Vector(x, y, z);
           ray = R3Ray(point_light->Position(), curr_photon->direction);
           curr_photon->normal = R3Vector(0,0,0);
