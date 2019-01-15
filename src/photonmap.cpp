@@ -43,6 +43,7 @@ static R3Scene *scene = NULL;
 static R3Point center(0, 0, 0);
 
 // Photon mapping variables
+static RNScalar cone_filter_const = 1.5;
 static int render_image_width = 200;
 static int render_image_height = 200;
 static int num_photons = 500000;
@@ -938,15 +939,11 @@ void photonInteraction(const R3Brdf *brdf, RNScalar *prev_ior, const Photon* in,
     bool flip_normal = false;
     RNScalar cos_theta = normal.Dot(in->direction);
     if (cos_theta < 0) {
-       std::cout<<"in"<<std::endl;
-     
        n1 = camera_index_of_refraction;
        n2 = brdf->IndexOfRefraction();
-
        flip_normal = true;
        cos_theta = -cos_theta;
     } else {
-      std::cout<<"out"<<std::endl;
         // assert(*prev_ior > camera_index_of_refraction);
         n1 = camera_index_of_refraction;
         n2 = brdf->IndexOfRefraction();
@@ -958,13 +955,13 @@ void photonInteraction(const R3Brdf *brdf, RNScalar *prev_ior, const Photon* in,
     }
     RNScalar ior_ratio = n1/n2;
     RNScalar sin_2_theta_t = pow(ior_ratio, 2) * (1 - pow(cos_theta, 2));
-    RNScalar tir = (RNIsGreaterOrEqual(sin_2_theta_t, RNScalar(1)));
+    RNScalar tir = (RNIsGreater(sin_2_theta_t, RNScalar(1)));
 
     RNScalar r_0 = pow((n1 - n2) / (n1+ n2),2);
     RNScalar reflect_prob;
     if (RNIsLessOrEqual(n1,n2)) {
-      reflect_prob = r_0 = + (1-r_0) * (1-cos_theta) * (1-cos_theta) * (1-cos_theta) * (1-cos_theta) * (1-cos_theta);
-    } else if (RNIsGreaterOrEqual(n1,pow(n2, int(!tir)))) {
+      reflect_prob = r_0 + (1-r_0) * (1-cos_theta) * (1-cos_theta) * (1-cos_theta) * (1-cos_theta) * (1-cos_theta);
+    } else if (RNIsGreater(n1,pow(n2, int(!tir)))) {
       RNScalar cos_theta_t = sqrt(1-sin_2_theta_t);
       reflect_prob = r_0 + (1-r_0) * (1-cos_theta_t) * (1-cos_theta_t) * (1-cos_theta_t) * (1-cos_theta_t) * (1-cos_theta_t);
     } else {
@@ -1129,10 +1126,11 @@ RNRgb EstimateFlux(R3Kdtree<Photon *> *photon_map,  R3Point point, int num_photo
   int num_nearby = nearby.NEntries();
   for (int i = 0; i < num_nearby; ++i)
   {
-    color += nearby[i]->power;
+   
+    color += (RNScalar(1.0) - (distances[i] /  cone_filter_const)) * nearby[i]->power;
   }
   color *= diffuseBrdf;
-  color /= RN_PI * distances[num_nearby - 1] * distances[num_nearby - 1];
+  color /= ((RN_PI * distances[num_nearby - 1] * distances[num_nearby - 1]) * (RNScalar(1) - (RNScalar(2)/(3*cone_filter_const))));
   delete [] distances;
   return color;
 }

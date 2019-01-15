@@ -85,6 +85,8 @@ RenderImage(R3Scene *scene,
 
       for (int s = 0; s < num_samples; s ++) {
         R3Ray ray = scene->Viewer().WorldRay(i, j);
+        // std::cout<<ray.Point(0)[0]<< ", " << ray.Point(0)[1] << ", " << ray.Point(0)[2] <<std::endl;
+
         RNScalar prev_ior = camera_index_of_refraction;
         RNRgb power_multiplier =  RNRgb(1,1,1);
         if (!traceRayDiffuse(scene, &prev_ior, ray, &point, &element, &normal, termination_rate, &power_multiplier)) {
@@ -120,7 +122,7 @@ RenderImage(R3Scene *scene,
               if (RNIsNegativeOrZero(NL)) {
                 continue;
               }
-              color += roulette_multiplier * NL * diff_brdf * Ic;
+              // color += roulette_multiplier * NL * diff_brdf * Ic;
             }
           } else if (light->ClassID() == R3AreaLight::CLASS_ID()) {
             // monte carlo estimate to evaluate direct illumination
